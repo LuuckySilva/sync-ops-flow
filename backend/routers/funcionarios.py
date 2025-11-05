@@ -78,13 +78,12 @@ async def buscar_funcionario(
 async def atualizar_funcionario(
     funcionario_id: str,
     update_data: FuncionarioUpdate,
-    db: AsyncIOMotorDatabase
+    service: FuncionarioService = Depends(get_service)
 ):
     """
     Atualiza um funcionário existente.
     """
     try:
-        service = get_service(db)
         funcionario = await service.update(funcionario_id, update_data)
         if not funcionario:
             raise HTTPException(status_code=404, detail="Funcionário não encontrado")
