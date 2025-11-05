@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { mockFuncionarios } from "@/lib/mock-data";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -11,29 +10,38 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Pencil, Trash2, UserPlus, Mail, UserX } from "lucide-react";
+import { Eye, Pencil, Trash2, UserPlus, Mail, UserX, Loader2 } from "lucide-react";
 import { FilterBar } from "@/components/common/FilterBar";
 import { BatchActionBar } from "@/components/common/BatchActionBar";
 import { useToastFeedback } from "@/hooks/use-toast-feedback";
 import { FuncionarioFormDialog } from "./FuncionarioFormDialog";
+import { useFuncionarios, useDeleteFuncionario } from "@/hooks/use-funcionarios";
 
 export const FuncionariosTable = () => {
-  const [funcionarios] = useState(mockFuncionarios);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSetor, setFilterSetor] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const { showSuccess } = useToastFeedback();
 
-  const filteredFuncionarios = funcionarios.filter((f) => {
-    const matchesSearch = 
-      f.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      f.cpf.includes(searchTerm);
-    const matchesSetor = !filterSetor || f.setor === filterSetor;
-    return matchesSearch && matchesSetor;
-  });
+  // Fetch funcionários da API
+  const { data: funcionarios = [], isLoading, error } = useFuncionarios();
+  const deleteFuncionario = useDeleteFuncionario();
 
-  const setores = Array.from(new Set(funcionarios.map((f) => f.setor)));
+  const filteredFuncionarios = useMemo(() => {
+    return funcionarios.filter((f) => {
+      const matchesSearch = 
+        f.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        f.cpf.includes(searchTerm);
+      const matchesSetor = !filterSetor || f.setor === filterSetor;
+      return matchesSearch && matchesSetor;
+    });
+  }, [funcionarios, searchTerm, filterSetor]);
+
+  const setores = useMemo(() => 
+    Array.from(new Set(funcionarios.map((f) => f.setor))),
+    [funcionarios]
+  );
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
