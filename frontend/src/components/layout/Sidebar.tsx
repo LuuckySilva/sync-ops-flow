@@ -25,6 +25,7 @@ const menuItems = [
   { icon: Fuel, label: "Combustível", path: "/combustivel" },
   { icon: FileText, label: "Documentação", path: "/documentacao" },
   { icon: BarChart3, label: "Relatórios", path: "/relatorios" },
+  { icon: Settings, label: "Configurações", path: "/configuracoes" },
 ];
 
 export const Sidebar = ({ open }: SidebarProps) => {
