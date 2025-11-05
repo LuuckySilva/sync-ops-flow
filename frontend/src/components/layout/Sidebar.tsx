@@ -76,9 +76,9 @@ export const Sidebar = ({ open }: SidebarProps) => {
           </ul>
         </nav>
 
-        <div className="p-4 border-t border-sidebar-border">
-          <div className="text-xs text-sidebar-foreground/60 text-center">
-            © 2025 Saneurb Construtora
+        <div className="p-4 border-t border-sidebar-border bg-sidebar-background/50">
+          <div className="text-xs text-sidebar-foreground/70 text-center">
+            © 2025 WorkFlow Pro
           </div>
         </div>
       </div>
