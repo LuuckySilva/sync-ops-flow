@@ -1,47 +1,81 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, FileText, Calendar } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Download, FileText, Calendar, Loader2, BarChart3, TrendingUp } from "lucide-react";
+import { api } from "@/services/api";
+import { toast } from "sonner";
 
 const relatoriosTipos = [
   {
-    titulo: "Fechamento Mensal de Alimentação",
-    descricao: "Relatório consolidado de refeições e custos por fornecedor",
-    icon: FileText,
-    color: "text-primary"
-  },
-  {
     titulo: "Relatório de Frequência",
-    descricao: "Horas trabalhadas, faltas e banco de horas por funcionário",
+    descricao: "Horas trabalhadas e presenças por funcionário",
     icon: Calendar,
-    color: "text-accent"
+    color: "text-blue-600",
+    bgColor: "bg-blue-50",
+    tipo: "frequencia"
   },
   {
-    titulo: "Consumo de Materiais",
-    descricao: "Gastos com materiais por setor e categoria",
-    icon: FileText,
-    color: "text-success"
-  },
-  {
-    titulo: "Controle de Combustível",
-    descricao: "Litros consumidos e custos por equipamento",
-    icon: FileText,
-    color: "text-warning"
-  },
-  {
-    titulo: "Documentação Pendente",
-    descricao: "Lista de documentos aguardando assinatura",
-    icon: FileText,
-    color: "text-destructive"
-  },
-  {
-    titulo: "Relatório Geral Operacional",
+    titulo: "Relatório Geral",
     descricao: "Consolidação de todos os indicadores do período",
-    icon: FileText,
-    color: "text-primary"
+    icon: BarChart3,
+    color: "text-purple-600",
+    bgColor: "bg-purple-50",
+    tipo: "geral"
+  },
+  {
+    titulo: "Análise de Desempenho",
+    descricao: "Métricas de produtividade e eficiência",
+    icon: TrendingUp,
+    color: "text-green-600",
+    bgColor: "bg-green-50",
+    tipo: "desempenho"
   }
 ];
 
 export const RelatoriosView = () => {
+  const [dataInicio, setDataInicio] = useState(
+    new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
+  );
+  const [dataFim, setDataFim] = useState(new Date().toISOString().split('T')[0]);
+  const [loading, setLoading] = useState<string | null>(null);
+
+  const gerarRelatorio = async (tipo: string, titulo: string) => {
+    setLoading(tipo);
+    try {
+      const response = await api.relatorios.gerar({
+        tipo: tipo as any,
+        data_inicio: dataInicio,
+        data_fim: dataFim,
+      });
+
+      console.log(`Relatório ${titulo}:`, response);
+      
+      // Criar um blob e fazer download
+      const dataStr = JSON.stringify(response, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `relatorio-${tipo}-${dataInicio}-a-${dataFim}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success(`Relatório "${titulo}" gerado com sucesso!`);
+    } catch (error: any) {
+      console.error('Erro ao gerar relatório:', error);
+      if (error.status === 501) {
+        toast.warning(`Relatório "${titulo}" em desenvolvimento`);
+      } else {
+        toast.error(`Erro ao gerar relatório: ${error.detail || 'Erro desconhecido'}`);
+      }
+    } finally {
+      setLoading(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -51,15 +85,43 @@ export const RelatoriosView = () => {
         </p>
       </div>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Filtros de Período</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Data Início</label>
+              <Input
+                type="date"
+                value={dataInicio}
+                onChange={(e) => setDataInicio(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Data Fim</label>
+              <Input
+                type="date"
+                value={dataFim}
+                onChange={(e) => setDataFim(e.target.value)}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {relatoriosTipos.map((relatorio) => {
           const Icon = relatorio.icon;
+          const isLoading = loading === relatorio.tipo;
+          
           return (
-            <Card key={relatorio.titulo} className="hover:shadow-lg transition-shadow">
+            <Card key={relatorio.titulo} className="hover:shadow-lg transition-shadow border-l-4 border-l-primary">
               <CardHeader>
                 <div className="flex items-start justify-between">
-                  <div className={`p-3 rounded-lg bg-primary/10 ${relatorio.color}`}>
-                    <Icon className="w-6 h-6" />
+                  <div className={`p-3 rounded-lg ${relatorio.bgColor}`}>
+                    <Icon className={`w-6 h-6 ${relatorio.color}`} />
                   </div>
                 </div>
                 <CardTitle className="text-lg mt-4">{relatorio.titulo}</CardTitle>
@@ -68,46 +130,28 @@ export const RelatoriosView = () => {
                 <p className="text-sm text-muted-foreground mb-4">
                   {relatorio.descricao}
                 </p>
-                <Button className="w-full gap-2">
-                  <Download className="w-4 h-4" />
-                  Gerar Relatório
+                <Button 
+                  className="w-full gap-2"
+                  onClick={() => gerarRelatorio(relatorio.tipo, relatorio.titulo)}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Gerando...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4" />
+                      Gerar Relatório
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>
           );
         })}
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtros de Período</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="text-sm font-medium">Data Início</label>
-              <input
-                type="date"
-                className="w-full mt-1 px-3 py-2 border rounded-lg"
-                defaultValue="2025-01-01"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Data Fim</label>
-              <input
-                type="date"
-                className="w-full mt-1 px-3 py-2 border rounded-lg"
-                defaultValue="2025-01-31"
-              />
-            </div>
-            <div className="flex items-end">
-              <Button className="w-full">
-                Aplicar Filtro
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
