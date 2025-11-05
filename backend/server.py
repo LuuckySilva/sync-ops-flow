@@ -1,15 +1,17 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Request
+from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field
-from typing import List
-import uuid
-from datetime import datetime
+import sys
 
+# Add backend directory to Python path for imports
+sys.path.insert(0, str(Path(__file__).parent))
+
+from routers import funcionarios_router, frequencia_router, relatorios_router
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -20,37 +22,51 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Create the main app without a prefix
-app = FastAPI()
+app = FastAPI(
+    title="SANEURB - Sistema de Gestão de Obras",
+    description="API para gerenciamento de funcionários, frequência, materiais, combustível e documentação",
+    version="1.0.0"
+)
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
-
-# Define Models
-class StatusCheck(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
-
-class StatusCheckCreate(BaseModel):
-    client_name: str
-
-# Add your routes to the router instead of directly to app
-@api_router.get("/")
+# Health check endpoint
+@api_router.get("/", tags=["Health"])
 async def root():
-    return {"message": "Hello World"}
+    return {
+        "message": "SANEURB API - Sistema de Gestão de Obras",
+        "status": "online",
+        "version": "1.0.0"
+    }
 
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.dict()
-    status_obj = StatusCheck(**status_dict)
-    _ = await db.status_checks.insert_one(status_obj.dict())
-    return status_obj
+# Dependency injection for database
+@app.middleware("http")
+async def add_db_to_request(request: Request, call_next):
+    """Middleware para injetar o database em todas as rotas"""
+    request.state.db = db
+    response = await call_next(request)
+    return response
 
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    status_checks = await db.status_checks.find().to_list(1000)
-    return [StatusCheck(**status_check) for status_check in status_checks]
+# Database dependency
+def get_database(request: Request):
+    return request.state.db
+
+# Update router dependencies to use database
+for router in [funcionarios_router, frequencia_router, relatorios_router]:
+    for route in router.routes:
+        if hasattr(route, 'dependant'):
+            # Inject db dependency
+            original_endpoint = route.endpoint
+            async def new_endpoint(*args, **kwargs):
+                kwargs['db'] = db
+                return await original_endpoint(*args, **kwargs)
+            route.endpoint = new_endpoint
+
+# Include routers
+api_router.include_router(funcionarios_router)
+api_router.include_router(frequencia_router)
+api_router.include_router(relatorios_router)
 
 # Include the router in the main app
 app.include_router(api_router)
