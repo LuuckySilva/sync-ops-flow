@@ -15,13 +15,16 @@ import { FilterBar } from "@/components/common/FilterBar";
 import { BatchActionBar } from "@/components/common/BatchActionBar";
 import { useToastFeedback } from "@/hooks/use-toast-feedback";
 import { FuncionarioFormDialog } from "./FuncionarioFormDialog";
+import { EditFuncionarioDialog } from "./EditFuncionarioDialog";
 import { useFuncionarios, useDeleteFuncionario } from "@/hooks/use-funcionarios";
+import { Funcionario } from "@/types";
 
 export const FuncionariosTable = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSetor, setFilterSetor] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingFuncionario, setEditingFuncionario] = useState<Funcionario | null>(null);
   const { showSuccess } = useToastFeedback();
 
   // Fetch funcionários da API
