@@ -119,7 +119,8 @@ export const FrequenciaTable = () => {
                   )}
                 </TableCell>
               </TableRow>
-            ))}
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
