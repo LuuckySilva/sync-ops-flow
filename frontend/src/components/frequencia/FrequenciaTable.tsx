@@ -121,6 +121,11 @@ export const FrequenciaTable = () => {
           </TableBody>
         </Table>
       </div>
+
+      <AddFrequenciaDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+      />
     </div>
   );
 };
