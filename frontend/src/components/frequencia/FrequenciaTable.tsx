@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -8,10 +9,12 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, FileUp, Download, Loader2 } from "lucide-react";
+import { Clock, Plus, Loader2 } from "lucide-react";
 import { useFrequencia } from "@/hooks/use-frequencia";
+import { AddFrequenciaDialog } from "./AddFrequenciaDialog";
 
 export const FrequenciaTable = () => {
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { data: registros = [], isLoading, error } = useFrequencia();
 
   if (isLoading) {
