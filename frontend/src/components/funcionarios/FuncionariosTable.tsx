@@ -237,6 +237,12 @@ export const FuncionariosTable = () => {
           // Reload funcionarios
         }}
       />
+
+      <EditFuncionarioDialog
+        open={!!editingFuncionario}
+        onOpenChange={(open) => !open && setEditingFuncionario(null)}
+        funcionario={editingFuncionario}
+      />
     </div>
   );
 };
