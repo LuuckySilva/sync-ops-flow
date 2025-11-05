@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Query, Depends
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from models.funcionario import Funcionario, FuncionarioCreate, FuncionarioUpdate
 from services.funcionario_service import FuncionarioService
+from dependencies import get_database
 from typing import List, Optional
 import logging
 
@@ -9,13 +10,16 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/funcionarios", tags=["Funcionários"])
 
 
-def get_service(db: AsyncIOMotorDatabase) -> FuncionarioService:
+def get_service(db: AsyncIOMotorDatabase = Depends(get_database)) -> FuncionarioService:
     """Dependency injection para o serviço"""
     return FuncionarioService(db)
 
 
 @router.post("", response_model=Funcionario, status_code=201)
-async def criar_funcionario(funcionario: FuncionarioCreate, db: AsyncIOMotorDatabase):
+async def criar_funcionario(
+    funcionario: FuncionarioCreate,
+    service: FuncionarioService = Depends(get_service)
+):
     """
     Cria um novo funcionário.
     
