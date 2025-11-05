@@ -74,6 +74,28 @@ export const FuncionariosTable = () => {
     setFilterSetor("");
   };
 
+  const handleDelete = async (id: string) => {
+    if (confirm('Tem certeza que deseja desativar este funcionário?')) {
+      deleteFuncionario.mutate(id);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64 text-destructive">
+        <p>Erro ao carregar funcionários. Tente novamente.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -126,43 +148,60 @@ export const FuncionariosTable = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredFuncionarios.map((funcionario) => (
-              <TableRow key={funcionario.id} className="hover:bg-muted/30">
-                <TableCell>
-                  <Checkbox
-                    checked={selectedIds.includes(funcionario.id)}
-                    onCheckedChange={(checked) =>
-                      handleSelectOne(funcionario.id, checked as boolean)
-                    }
-                  />
-                </TableCell>
-                <TableCell className="font-medium">{funcionario.nome}</TableCell>
-                <TableCell>{funcionario.cpf}</TableCell>
-                <TableCell>{funcionario.cargo}</TableCell>
-                <TableCell>{funcionario.setor}</TableCell>
-                <TableCell>
-                  {new Date(funcionario.data_admissao).toLocaleDateString('pt-BR')}
-                </TableCell>
-                <TableCell>
-                  <Badge variant={funcionario.ativo ? "default" : "secondary"}>
-                    {funcionario.ativo ? "Ativo" : "Inativo"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="icon">
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
+            {filteredFuncionarios.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center h-32 text-muted-foreground">
+                  Nenhum funcionário encontrado
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              filteredFuncionarios.map((funcionario) => (
+                <TableRow key={funcionario.id} className="hover:bg-muted/30">
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedIds.includes(funcionario.id)}
+                      onCheckedChange={(checked) =>
+                        handleSelectOne(funcionario.id, checked as boolean)
+                      }
+                    />
+                  </TableCell>
+                  <TableCell className="font-medium">{funcionario.nome}</TableCell>
+                  <TableCell>{funcionario.cpf}</TableCell>
+                  <TableCell>{funcionario.cargo}</TableCell>
+                  <TableCell>{funcionario.setor}</TableCell>
+                  <TableCell>
+                    {new Date(funcionario.data_admissao).toLocaleDateString('pt-BR')}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={funcionario.ativo ? "default" : "secondary"}>
+                      {funcionario.ativo ? "Ativo" : "Inativo"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="icon">
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon">
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => handleDelete(funcionario.id)}
+                        disabled={deleteFuncionario.isPending}
+                      >
+                        {deleteFuncionario.isPending ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
