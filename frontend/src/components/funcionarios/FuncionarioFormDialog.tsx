@@ -74,11 +74,11 @@ export const FuncionarioFormDialog = ({
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        showError("Foto deve ter no máximo 5MB");
+        alert("Foto deve ter no máximo 5MB");
         return;
       }
       if (!file.type.startsWith("image/")) {
-        showError("Arquivo deve ser uma imagem");
+        alert("Arquivo deve ser uma imagem");
         return;
       }
       setFoto(file);
@@ -89,7 +89,7 @@ export const FuncionarioFormDialog = ({
     const files = Array.from(e.target.files || []);
     const validFiles = files.filter((file) => {
       if (file.size > 10 * 1024 * 1024) {
-        showError(`${file.name} excede 10MB`);
+        alert(`${file.name} excede 10MB`);
         return false;
       }
       return true;
