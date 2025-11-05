@@ -123,9 +123,6 @@ export const FuncionarioFormDialog = ({
       onSuccess?.();
     } catch (error) {
       console.error("Erro ao cadastrar funcionário:", error);
-      showError("Erro ao cadastrar funcionário");
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
