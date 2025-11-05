@@ -2,7 +2,7 @@
  * API Service - Centraliza todas as chamadas para o backend
  */
 
-const API_BASE_URL = import.meta.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL || window.location.origin;
 const API_PREFIX = '/api';
 
 class ApiError extends Error {
