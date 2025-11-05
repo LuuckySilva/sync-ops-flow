@@ -101,3 +101,86 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Teste completo do WorkFlow Pro - Sistema de Gestão Empresarial. Sistema full-stack com React + FastAPI + MongoDB que gerencia funcionários, frequência e relatórios."
+
+frontend:
+  - task: "Dashboard Home - Stats Cards"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/dashboard/DashboardHome.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Need to test if 4 stats cards load with real data from API: Funcionários Ativos, Horas Trabalhadas, Presenças Registradas, Média Horas/Dia"
+
+  - task: "Funcionários Table and Management"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/funcionarios/FuncionariosTable.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Need to test table loading with 8 seed funcionários, Novo Funcionário button modal, edit button modal, filters and search functionality"
+
+  - task: "Frequência Table and Registration"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/frequencia/FrequenciaTable.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Need to test table loading with 156 frequency records from last 30 days, Registrar Frequência button modal, hours calculation display"
+
+  - task: "Relatórios Generation and Export"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/relatorios/RelatoriosView.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Need to test 3 report cards, Gerar Relatório buttons, date filters functionality, report generation feedback"
+
+  - task: "Navigation and Routing"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.tsx"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Need to test sidebar navigation between pages, active item highlighting, page transitions"
+
+metadata:
+  created_by: "testing_agent"
+  version: "1.0"
+  test_sequence: 1
+
+test_plan:
+  current_focus:
+    - "Dashboard Home - Stats Cards"
+    - "Funcionários Table and Management"
+    - "Frequência Table and Registration"
+    - "Relatórios Generation and Export"
+    - "Navigation and Routing"
+  stuck_tasks: []
+  test_all: true
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "testing"
+    message: "Starting comprehensive testing of WorkFlow Pro system. Seed data populated: 8 funcionários and 156 frequency records. Will test all main flows including dashboard stats, funcionários management, frequency tracking, reports generation, and navigation. Testing URL: https://dev-workflow-pro.preview.emergentagent.com"
