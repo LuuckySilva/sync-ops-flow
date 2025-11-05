@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from models.frequencia import RegistroFrequencia, RegistroFrequenciaCreate, RegistroFrequenciaUpdate
 from services.frequencia_service import FrequenciaService
+from dependencies import get_database
 from typing import List, Optional
 import logging
 
@@ -9,7 +10,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/frequencia", tags=["Frequência"])
 
 
-def get_service(db: AsyncIOMotorDatabase) -> FrequenciaService:
+def get_service(db: AsyncIOMotorDatabase = Depends(get_database)) -> FrequenciaService:
     return FrequenciaService(db)
 
 
