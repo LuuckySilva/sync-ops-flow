@@ -55,12 +55,14 @@ async def listar_funcionarios(
 
 
 @router.get("/{funcionario_id}", response_model=Funcionario)
-async def buscar_funcionario(funcionario_id: str, db: AsyncIOMotorDatabase):
+async def buscar_funcionario(
+    funcionario_id: str,
+    service: FuncionarioService = Depends(get_service)
+):
     """
     Busca um funcionário por ID.
     """
     try:
-        service = get_service(db)
         funcionario = await service.get_by_id(funcionario_id)
         if not funcionario:
             raise HTTPException(status_code=404, detail="Funcionário não encontrado")
