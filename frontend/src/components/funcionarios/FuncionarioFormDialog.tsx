@@ -102,49 +102,20 @@ export const FuncionarioFormDialog = ({
   };
 
   const onSubmit = async (values: FormValues) => {
-    setIsSubmitting(true);
     try {
-      // Insert funcionario
-      const { data: funcionario, error: funcError } = await supabase
-        .from("funcionarios")
-        .insert({
-          nome: values.nome,
-          cpf: values.cpf,
-          cargo: values.cargo,
-          setor: values.setor,
-          email: values.email || null,
-          telefone: values.telefone || null,
-          data_admissao: values.data_admissao,
-          ativo: true,
-        })
-        .select()
-        .single();
+      await createFuncionario.mutateAsync({
+        nome: values.nome,
+        cpf: values.cpf,
+        cargo: values.cargo,
+        setor: values.setor,
+        email: values.email || undefined,
+        telefone: values.telefone || undefined,
+        data_admissao: values.data_admissao,
+        ativo: true,
+      });
 
-      if (funcError) throw funcError;
-
-      // Upload foto
-      if (foto && funcionario) {
-        const fotoPath = `funcionarios/${funcionario.id}/foto.${foto.name.split(".").pop()}`;
-        const { error: fotoError } = await supabase.storage
-          .from("uploads")
-          .upload(fotoPath, foto);
-
-        if (fotoError) console.error("Erro ao enviar foto:", fotoError);
-      }
-
-      // Upload documentos
-      if (documentos.length > 0 && funcionario) {
-        for (const doc of documentos) {
-          const docPath = `funcionarios/${funcionario.id}/documentos/${doc.name}`;
-          const { error: docError } = await supabase.storage
-            .from("uploads")
-            .upload(docPath, doc);
-
-          if (docError) console.error(`Erro ao enviar ${doc.name}:`, docError);
-        }
-      }
-
-      showSuccess("Funcionário cadastrado com sucesso!");
+      // TODO: Upload de foto e documentos será implementado futuramente
+      
       form.reset();
       setFoto(null);
       setDocumentos([]);
