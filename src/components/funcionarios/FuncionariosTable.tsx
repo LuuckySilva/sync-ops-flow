@@ -15,12 +15,14 @@ import { Eye, Pencil, Trash2, UserPlus, Mail, UserX } from "lucide-react";
 import { FilterBar } from "@/components/common/FilterBar";
 import { BatchActionBar } from "@/components/common/BatchActionBar";
 import { useToastFeedback } from "@/hooks/use-toast-feedback";
+import { FuncionarioFormDialog } from "./FuncionarioFormDialog";
 
 export const FuncionariosTable = () => {
   const [funcionarios] = useState(mockFuncionarios);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSetor, setFilterSetor] = useState("");
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const { showSuccess } = useToastFeedback();
 
   const filteredFuncionarios = funcionarios.filter((f) => {
@@ -73,7 +75,7 @@ export const FuncionariosTable = () => {
             Gerencie os funcionários da empresa • {filteredFuncionarios.length} encontrado(s)
           </p>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => setIsFormOpen(true)}>
           <UserPlus className="w-4 h-4" />
           Novo Funcionário
         </Button>
@@ -174,6 +176,14 @@ export const FuncionariosTable = () => {
             variant: "destructive",
           },
         ]}
+      />
+
+      <FuncionarioFormDialog
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        onSuccess={() => {
+          // Reload funcionarios
+        }}
       />
     </div>
   );
