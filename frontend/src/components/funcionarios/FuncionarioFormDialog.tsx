@@ -351,12 +351,19 @@ export const FuncionarioFormDialog = ({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                disabled={isSubmitting}
+                disabled={createFuncionario.isPending}
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Cadastrando..." : "Cadastrar Funcionário"}
+              <Button type="submit" disabled={createFuncionario.isPending}>
+                {createFuncionario.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Cadastrando...
+                  </>
+                ) : (
+                  "Cadastrar Funcionário"
+                )}
               </Button>
             </div>
           </form>
