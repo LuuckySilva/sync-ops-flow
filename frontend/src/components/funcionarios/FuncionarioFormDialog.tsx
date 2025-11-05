@@ -26,9 +26,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { useToastFeedback } from "@/hooks/use-toast-feedback";
-import { Upload, X, FileText, User } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Upload, X, FileText, User, Loader2 } from "lucide-react";
+import { useCreateFuncionario } from "@/hooks/use-funcionarios";
 
 const formSchema = z.object({
   nome: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
@@ -36,7 +35,7 @@ const formSchema = z.object({
   cargo: z.string().min(2, "Cargo é obrigatório"),
   setor: z.string().min(2, "Setor é obrigatório"),
   email: z.string().email("E-mail inválido").optional().or(z.literal("")),
-  telefone: z.string().optional(),
+  telefone: z.string().regex(/^\(\d{2}\) \d{4,5}-\d{4}$/, "Telefone inválido (formato: (00) 00000-0000)").optional().or(z.literal("")),
   data_admissao: z.string().min(1, "Data de admissão é obrigatória"),
 });
 
@@ -53,10 +52,10 @@ export const FuncionarioFormDialog = ({
   onOpenChange,
   onSuccess,
 }: FuncionarioFormDialogProps) => {
-  const { showSuccess, showError } = useToastFeedback();
   const [foto, setFoto] = useState<File | null>(null);
   const [documentos, setDocumentos] = useState<File[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const createFuncionario = useCreateFuncionario();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
