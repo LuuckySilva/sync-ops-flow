@@ -1,5 +1,3 @@
-import { useState } from "react";
-import { mockFrequencia } from "@/lib/mock-data";
 import {
   Table,
   TableBody,
@@ -10,10 +8,27 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, FileUp, Download } from "lucide-react";
+import { Clock, FileUp, Download, Loader2 } from "lucide-react";
+import { useFrequencia } from "@/hooks/use-frequencia";
 
 export const FrequenciaTable = () => {
-  const [registros] = useState(mockFrequencia);
+  const { data: registros = [], isLoading, error } = useFrequencia();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64 text-destructive">
+        <p>Erro ao carregar registros de frequência</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
