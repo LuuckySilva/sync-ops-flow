@@ -9,7 +9,7 @@ export const DashboardHome = () => {
       <div>
         <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
         <p className="text-muted-foreground mt-1">
-          Visão geral do sistema de gestão operacional
+          Visão geral do sistema WorkFlow Pro
         </p>
       </div>
 
