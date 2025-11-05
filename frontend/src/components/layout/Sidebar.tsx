@@ -8,7 +8,8 @@ import {
   Fuel, 
   FileText,
   BarChart3,
-  Building2
+  Building2,
+  Settings
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
