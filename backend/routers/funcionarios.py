@@ -98,12 +98,14 @@ async def atualizar_funcionario(
 
 
 @router.delete("/{funcionario_id}", status_code=204)
-async def desativar_funcionario(funcionario_id: str, db: AsyncIOMotorDatabase):
+async def desativar_funcionario(
+    funcionario_id: str,
+    service: FuncionarioService = Depends(get_service)
+):
     """
     Desativa um funcionário (soft delete).
     """
     try:
-        service = get_service(db)
         success = await service.delete(funcionario_id)
         if not success:
             raise HTTPException(status_code=404, detail="Funcionário não encontrado")
