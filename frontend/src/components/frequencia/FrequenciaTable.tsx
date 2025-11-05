@@ -65,7 +65,14 @@ export const FrequenciaTable = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {registros.map((reg) => (
+            {registros.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center h-32 text-muted-foreground">
+                  Nenhum registro de frequência encontrado
+                </TableCell>
+              </TableRow>
+            ) : (
+              registros.map((reg) => (
               <TableRow key={reg.id}>
                 <TableCell className="font-medium">{reg.nome}</TableCell>
                 <TableCell>
