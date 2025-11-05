@@ -1,5 +1,4 @@
-from fastapi import FastAPI, APIRouter, Request
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, APIRouter
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -28,6 +27,9 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Make database available globally for routers
+app.state.db = db
+
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
@@ -39,29 +41,6 @@ async def root():
         "status": "online",
         "version": "1.0.0"
     }
-
-# Dependency injection for database
-@app.middleware("http")
-async def add_db_to_request(request: Request, call_next):
-    """Middleware para injetar o database em todas as rotas"""
-    request.state.db = db
-    response = await call_next(request)
-    return response
-
-# Database dependency
-def get_database(request: Request):
-    return request.state.db
-
-# Update router dependencies to use database
-for router in [funcionarios_router, frequencia_router, relatorios_router]:
-    for route in router.routes:
-        if hasattr(route, 'dependant'):
-            # Inject db dependency
-            original_endpoint = route.endpoint
-            async def new_endpoint(*args, **kwargs):
-                kwargs['db'] = db
-                return await original_endpoint(*args, **kwargs)
-            route.endpoint = new_endpoint
 
 # Include routers
 api_router.include_router(funcionarios_router)
