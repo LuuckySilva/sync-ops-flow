@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { mockFuncionarios } from "@/lib/mock-data";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -8,20 +11,66 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Edit, Trash2, Eye, UserPlus } from "lucide-react";
+import { Eye, Pencil, Trash2, UserPlus, Mail, UserX } from "lucide-react";
+import { FilterBar } from "@/components/common/FilterBar";
+import { BatchActionBar } from "@/components/common/BatchActionBar";
+import { useToastFeedback } from "@/hooks/use-toast-feedback";
 
 export const FuncionariosTable = () => {
   const [funcionarios] = useState(mockFuncionarios);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterSetor, setFilterSetor] = useState("");
+  const { showSuccess } = useToastFeedback();
+
+  const filteredFuncionarios = funcionarios.filter((f) => {
+    const matchesSearch = 
+      f.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      f.cpf.includes(searchTerm);
+    const matchesSetor = !filterSetor || f.setor === filterSetor;
+    return matchesSearch && matchesSetor;
+  });
+
+  const setores = Array.from(new Set(funcionarios.map((f) => f.setor)));
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(filteredFuncionarios.map((f) => f.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedIds([...selectedIds, id]);
+    } else {
+      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
+    }
+  };
+
+  const handleBatchDelete = () => {
+    showSuccess(`${selectedIds.length} funcionário(s) removido(s) com sucesso`);
+    setSelectedIds([]);
+  };
+
+  const handleBatchEmail = () => {
+    showSuccess(`E-mail enviado para ${selectedIds.length} funcionário(s)`);
+    setSelectedIds([]);
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setFilterSetor("");
+  };
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">Funcionários</h2>
+          <h2 className="text-2xl font-bold text-foreground">Funcionários</h2>
           <p className="text-sm text-muted-foreground">
-            Gerencie os funcionários da empresa
+            Gerencie os funcionários da empresa • {filteredFuncionarios.length} encontrado(s)
           </p>
         </div>
         <Button className="gap-2">
@@ -30,32 +79,63 @@ export const FuncionariosTable = () => {
         </Button>
       </div>
 
-      <div className="border rounded-lg">
+      <FilterBar
+        searchPlaceholder="Buscar por nome ou CPF..."
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        onFilterChange={(key, value) => {
+          if (key === "setor") setFilterSetor(value);
+        }}
+        filters={[
+          {
+            key: "setor",
+            label: "Filtrar por setor",
+            options: setores.map((s) => ({ value: s, label: s })),
+          },
+        ]}
+        onClearFilters={handleClearFilters}
+      />
+
+      <div className="border rounded-lg overflow-hidden bg-card">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-muted/50">
+              <TableHead className="w-12">
+                <Checkbox
+                  checked={selectedIds.length === filteredFuncionarios.length && filteredFuncionarios.length > 0}
+                  onCheckedChange={handleSelectAll}
+                />
+              </TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>CPF</TableHead>
               <TableHead>Cargo</TableHead>
               <TableHead>Setor</TableHead>
-              <TableHead>Admissão</TableHead>
+              <TableHead>Data Admissão</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {funcionarios.map((func) => (
-              <TableRow key={func.id}>
-                <TableCell className="font-medium">{func.nome}</TableCell>
-                <TableCell>{func.cpf}</TableCell>
-                <TableCell>{func.cargo}</TableCell>
-                <TableCell>{func.setor}</TableCell>
+            {filteredFuncionarios.map((funcionario) => (
+              <TableRow key={funcionario.id} className="hover:bg-muted/30">
                 <TableCell>
-                  {new Date(func.data_admissao).toLocaleDateString('pt-BR')}
+                  <Checkbox
+                    checked={selectedIds.includes(funcionario.id)}
+                    onCheckedChange={(checked) =>
+                      handleSelectOne(funcionario.id, checked as boolean)
+                    }
+                  />
+                </TableCell>
+                <TableCell className="font-medium">{funcionario.nome}</TableCell>
+                <TableCell>{funcionario.cpf}</TableCell>
+                <TableCell>{funcionario.cargo}</TableCell>
+                <TableCell>{funcionario.setor}</TableCell>
+                <TableCell>
+                  {new Date(funcionario.data_admissao).toLocaleDateString('pt-BR')}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={func.ativo ? "default" : "secondary"}>
-                    {func.ativo ? "Ativo" : "Inativo"}
+                  <Badge variant={funcionario.ativo ? "default" : "secondary"}>
+                    {funcionario.ativo ? "Ativo" : "Inativo"}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
@@ -64,7 +144,7 @@ export const FuncionariosTable = () => {
                       <Eye className="w-4 h-4" />
                     </Button>
                     <Button variant="ghost" size="icon">
-                      <Edit className="w-4 h-4" />
+                      <Pencil className="w-4 h-4" />
                     </Button>
                     <Button variant="ghost" size="icon">
                       <Trash2 className="w-4 h-4" />
@@ -76,6 +156,25 @@ export const FuncionariosTable = () => {
           </TableBody>
         </Table>
       </div>
+
+      <BatchActionBar
+        selectedCount={selectedIds.length}
+        onClearSelection={() => setSelectedIds([])}
+        actions={[
+          {
+            label: "Enviar E-mail",
+            icon: <Mail className="w-4 h-4" />,
+            onClick: handleBatchEmail,
+            variant: "secondary",
+          },
+          {
+            label: "Remover",
+            icon: <UserX className="w-4 h-4" />,
+            onClick: handleBatchDelete,
+            variant: "destructive",
+          },
+        ]}
+      />
     </div>
   );
 };
