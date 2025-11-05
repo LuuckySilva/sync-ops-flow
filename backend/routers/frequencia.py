@@ -15,7 +15,10 @@ def get_service(db: AsyncIOMotorDatabase = Depends(get_database)) -> FrequenciaS
 
 
 @router.post("", response_model=RegistroFrequencia, status_code=201)
-async def registrar_frequencia(registro: RegistroFrequenciaCreate, db: AsyncIOMotorDatabase):
+async def registrar_frequencia(
+    registro: RegistroFrequenciaCreate,
+    service: FrequenciaService = Depends(get_service)
+):
     """
     Registra a frequência de um funcionário.
     
@@ -26,7 +29,6 @@ async def registrar_frequencia(registro: RegistroFrequenciaCreate, db: AsyncIOMo
     - **tipo_dia**: Tipo do dia (util, feriado, fim_de_semana)
     """
     try:
-        service = get_service(db)
         return await service.create(registro)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -37,16 +39,15 @@ async def registrar_frequencia(registro: RegistroFrequenciaCreate, db: AsyncIOMo
 
 @router.get("", response_model=List[RegistroFrequencia])
 async def listar_frequencia(
-    db: AsyncIOMotorDatabase,
     data_inicio: Optional[str] = Query(None, description="Data inicial (YYYY-MM-DD)"),
     data_fim: Optional[str] = Query(None, description="Data final (YYYY-MM-DD)"),
-    funcionario_id: Optional[str] = Query(None, description="ID do funcionário")
+    funcionario_id: Optional[str] = Query(None, description="ID do funcionário"),
+    service: FrequenciaService = Depends(get_service)
 ):
     """
     Lista registros de frequência com filtros opcionais.
     """
     try:
-        service = get_service(db)
         return await service.get_all(
             data_inicio=data_inicio,
             data_fim=data_fim,
@@ -58,12 +59,14 @@ async def listar_frequencia(
 
 
 @router.get("/{registro_id}", response_model=RegistroFrequencia)
-async def buscar_frequencia(registro_id: str, db: AsyncIOMotorDatabase):
+async def buscar_frequencia(
+    registro_id: str,
+    service: FrequenciaService = Depends(get_service)
+):
     """
     Busca um registro de frequência por ID.
     """
     try:
-        service = get_service(db)
         registro = await service.get_by_id(registro_id)
         if not registro:
             raise HTTPException(status_code=404, detail="Registro não encontrado")
@@ -79,13 +82,12 @@ async def buscar_frequencia(registro_id: str, db: AsyncIOMotorDatabase):
 async def atualizar_frequencia(
     registro_id: str,
     update_data: RegistroFrequenciaUpdate,
-    db: AsyncIOMotorDatabase
+    service: FrequenciaService = Depends(get_service)
 ):
     """
     Atualiza um registro de frequência.
     """
     try:
-        service = get_service(db)
         registro = await service.update(registro_id, update_data)
         if not registro:
             raise HTTPException(status_code=404, detail="Registro não encontrado")
@@ -98,12 +100,14 @@ async def atualizar_frequencia(
 
 
 @router.delete("/{registro_id}", status_code=204)
-async def remover_frequencia(registro_id: str, db: AsyncIOMotorDatabase):
+async def remover_frequencia(
+    registro_id: str,
+    service: FrequenciaService = Depends(get_service)
+):
     """
     Remove um registro de frequência.
     """
     try:
-        service = get_service(db)
         success = await service.delete(registro_id)
         if not success:
             raise HTTPException(status_code=404, detail="Registro não encontrado")
@@ -120,7 +124,7 @@ async def buscar_frequencia_mes(
     funcionario_id: str,
     ano: int,
     mes: int,
-    db: AsyncIOMotorDatabase
+    service: FrequenciaService = Depends(get_service)
 ):
     """
     Busca todos os registros de frequência de um funcionário em um mês específico.
@@ -129,7 +133,6 @@ async def buscar_frequencia_mes(
         if mes < 1 or mes > 12:
             raise HTTPException(status_code=400, detail="Mês inválido (deve ser entre 1 e 12)")
         
-        service = get_service(db)
         return await service.get_by_funcionario_mes(funcionario_id, ano, mes)
     except HTTPException:
         raise
