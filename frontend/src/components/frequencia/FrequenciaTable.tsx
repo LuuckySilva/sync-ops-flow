@@ -42,16 +42,10 @@ export const FrequenciaTable = () => {
             Registros de ponto e horas trabalhadas
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="gap-2">
-            <FileUp className="w-4 h-4" />
-            Importar Planilha
-          </Button>
-          <Button className="gap-2">
-            <Download className="w-4 h-4" />
-            Exportar Relatório
-          </Button>
-        </div>
+        <Button className="gap-2" onClick={() => setIsAddDialogOpen(true)}>
+          <Plus className="w-4 h-4" />
+          Registrar Frequência
+        </Button>
       </div>
 
       <div className="border rounded-lg">
