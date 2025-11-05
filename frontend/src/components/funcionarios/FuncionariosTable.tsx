@@ -182,10 +182,12 @@ export const FuncionariosTable = () => {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => setEditingFuncionario(funcionario)}
+                        title="Editar"
+                      >
                         <Pencil className="w-4 h-4" />
                       </Button>
                       <Button 
