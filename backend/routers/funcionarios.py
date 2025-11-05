@@ -118,12 +118,14 @@ async def desativar_funcionario(
 
 
 @router.get("/cpf/{cpf}", response_model=Funcionario)
-async def buscar_por_cpf(cpf: str, db: AsyncIOMotorDatabase):
+async def buscar_por_cpf(
+    cpf: str,
+    service: FuncionarioService = Depends(get_service)
+):
     """
     Busca um funcionário por CPF.
     """
     try:
-        service = get_service(db)
         funcionario = await service.get_by_cpf(cpf)
         if not funcionario:
             raise HTTPException(status_code=404, detail="Funcionário não encontrado")
