@@ -40,15 +40,14 @@ async def criar_funcionario(
 
 @router.get("", response_model=List[Funcionario])
 async def listar_funcionarios(
-    db: AsyncIOMotorDatabase,
     ativo: Optional[bool] = Query(None, description="Filtrar por status ativo/inativo"),
-    setor: Optional[str] = Query(None, description="Filtrar por setor")
+    setor: Optional[str] = Query(None, description="Filtrar por setor"),
+    service: FuncionarioService = Depends(get_service)
 ):
     """
     Lista todos os funcionários com filtros opcionais.
     """
     try:
-        service = get_service(db)
         return await service.get_all(ativo=ativo, setor=setor)
     except Exception as e:
         logger.error(f"Erro ao listar funcionários: {e}")
