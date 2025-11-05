@@ -30,7 +30,6 @@ async def criar_funcionario(
     - **data_admissao**: Data de admissão (YYYY-MM-DD)
     """
     try:
-        service = get_service(db)
         return await service.create(funcionario)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
