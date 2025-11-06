@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Pencil, Trash2, UserPlus, Mail, UserX, Loader2 } from "lucide-react";
+import { Eye, Pencil, Trash2, UserPlus, Mail, UserX, Loader2, Download, Upload } from "lucide-react";
 import { FilterBar } from "@/components/common/FilterBar";
 import { BatchActionBar } from "@/components/common/BatchActionBar";
 import { useToastFeedback } from "@/hooks/use-toast-feedback";
@@ -18,6 +18,9 @@ import { FuncionarioFormDialog } from "./FuncionarioFormDialog";
 import { EditFuncionarioDialog } from "./EditFuncionarioDialog";
 import { useFuncionarios, useDeleteFuncionario } from "@/hooks/use-funcionarios";
 import { Funcionario } from "@/types";
+import { excelApi } from "@/services/excel-api";
+import { toast } from "sonner";
+import { useRef } from "react";
 
 export const FuncionariosTable = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -25,6 +28,9 @@ export const FuncionariosTable = () => {
   const [filterSetor, setFilterSetor] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingFuncionario, setEditingFuncionario] = useState<Funcionario | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { showSuccess } = useToastFeedback();
 
   // Fetch funcionários da API
@@ -83,6 +89,44 @@ export const FuncionariosTable = () => {
     }
   };
 
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      await excelApi.exportFuncionarios();
+      toast.success('Planilha exportada com sucesso!');
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao exportar planilha');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImportExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      const result = await excelApi.importFuncionarios(file);
+      toast.success(
+        `${result.criados} funcionário(s) importado(s) com sucesso!`,
+        {
+          description: result.erros > 0 
+            ? `${result.erros} erro(s) encontrado(s). Verifique os dados.` 
+            : undefined
+        }
+      );
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao importar planilha');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -108,10 +152,45 @@ export const FuncionariosTable = () => {
             Gerencie os funcionários da empresa • {filteredFuncionarios.length} encontrado(s)
           </p>
         </div>
-        <Button className="gap-2" onClick={() => setIsFormOpen(true)}>
-          <UserPlus className="w-4 h-4" />
-          Novo Funcionário
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={handleExportExcel}
+            disabled={isExporting}
+          >
+            {isExporting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+            Exportar Excel
+          </Button>
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isImporting}
+          >
+            {isImporting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Upload className="w-4 h-4" />
+            )}
+            Importar Excel
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.xls"
+            onChange={handleImportExcel}
+            style={{ display: 'none' }}
+          />
+          <Button className="gap-2" onClick={() => setIsFormOpen(true)}>
+            <UserPlus className="w-4 h-4" />
+            Novo Funcionário
+          </Button>
+        </div>
       </div>
 
       <FilterBar

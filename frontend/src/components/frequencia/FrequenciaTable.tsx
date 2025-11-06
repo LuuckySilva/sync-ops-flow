@@ -9,13 +9,28 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Plus, Loader2 } from "lucide-react";
+import { Clock, Plus, Loader2, Download } from "lucide-react";
 import { useFrequencia } from "@/hooks/use-frequencia";
 import { AddFrequenciaDialog } from "./AddFrequenciaDialog";
+import { excelApi } from "@/services/excel-api";
+import { toast } from "sonner";
 
 export const FrequenciaTable = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const { data: registros = [], isLoading, error } = useFrequencia();
+
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      await excelApi.exportFrequencia();
+      toast.success('Planilha de frequência exportada com sucesso!');
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao exportar planilha');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -42,10 +57,25 @@ export const FrequenciaTable = () => {
             Registros de ponto e horas trabalhadas
           </p>
         </div>
-        <Button className="gap-2" onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="w-4 h-4" />
-          Registrar Frequência
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={handleExportExcel}
+            disabled={isExporting}
+          >
+            {isExporting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+            Exportar Excel
+          </Button>
+          <Button className="gap-2" onClick={() => setIsAddDialogOpen(true)}>
+            <Plus className="w-4 h-4" />
+            Registrar Frequência
+          </Button>
+        </div>
       </div>
 
       <div className="border rounded-lg">

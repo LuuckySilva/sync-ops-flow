@@ -17,6 +17,7 @@ sys.path.insert(0, str(ROOT_DIR))
 
 # Importa os routers
 from routers import funcionarios_router, frequencia_router, relatorios_router
+from routers.excel import router as excel_router
 
 # --- Configuração do Logger ---
 logging.basicConfig(
@@ -66,6 +67,7 @@ async def health_check():
 api_router.include_router(funcionarios_router)
 api_router.include_router(frequencia_router)
 api_router.include_router(relatorios_router)
+api_router.include_router(excel_router)
 
 # --- Adiciona o router principal à aplicação ---
 app.include_router(api_router)
