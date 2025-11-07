@@ -9,7 +9,8 @@ import {
   FileText,
   BarChart3,
   Building2,
-  Settings
+  Settings,
+  Webhook
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -26,6 +27,7 @@ const menuItems = [
   { icon: Fuel, label: "Combustível", path: "/combustivel" },
   { icon: FileText, label: "Documentação", path: "/documentacao" },
   { icon: BarChart3, label: "Relatórios", path: "/relatorios" },
+  { icon: Webhook, label: "Eventos & Webhooks", path: "/eventos" },
   { icon: Settings, label: "Configurações", path: "/configuracoes" },
 ];
 

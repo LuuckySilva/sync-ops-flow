@@ -9,6 +9,7 @@ import Materiais from "./pages/Materiais";
 import Combustivel from "./pages/Combustivel";
 import Documentacao from "./pages/Documentacao";
 import Configuracoes from "./pages/Configuracoes";
+import Eventos from "./pages/Eventos";
 import NotFound from "./pages/NotFound";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/materiais" element={<DashboardLayout><Materiais /></DashboardLayout>} />
           <Route path="/combustivel" element={<DashboardLayout><Combustivel /></DashboardLayout>} />
           <Route path="/documentacao" element={<DashboardLayout><Documentacao /></DashboardLayout>} />
+          <Route path="/eventos" element={<DashboardLayout><Eventos /></DashboardLayout>} />
           <Route path="/configuracoes" element={<DashboardLayout><Configuracoes /></DashboardLayout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
