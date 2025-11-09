@@ -331,6 +331,24 @@ async def import_frequencia(
         
         logger.info(f"Frequência importada: {len(created)} criados, {len(errors)} erros")
         
+        # Registra no log de auditoria
+        log_service = LogService(db)
+        await log_service.create_log(
+            usuario_email=current_user["email"],
+            usuario_nome=current_user["nome"],
+            acao=f"Importação de frequência via {file.filename}",
+            tipo="import",
+            modulo="frequencia",
+            status="sucesso",
+            detalhes={
+                "arquivo": file.filename,
+                "total_processados": len(df),
+                "criados": len(created),
+                "erros": len(errors)
+            },
+            ip_origem=get_client_ip(request)
+        )
+        
         return {
             "message": "Importação de frequência concluída",
             "total_processados": len(df),
@@ -343,6 +361,20 @@ async def import_frequencia(
         raise
     except Exception as e:
         logger.error(f"Erro ao importar frequência: {e}")
+        
+        # Registra erro no log
+        log_service = LogService(db)
+        await log_service.create_log(
+            usuario_email=current_user.get("email", "unknown"),
+            usuario_nome=current_user.get("nome", "Unknown"),
+            acao=f"Tentativa de importação de frequência via {file.filename}",
+            tipo="import",
+            modulo="frequencia",
+            status="erro",
+            detalhes={"erro": str(e), "arquivo": file.filename},
+            ip_origem=get_client_ip(request)
+        )
+        
         raise HTTPException(status_code=500, detail=f"Erro ao processar importação: {str(e)}")
 
 
