@@ -66,6 +66,8 @@ async def health_check():
     }
 
 # --- Inclusão dos routers ---
+api_router.include_router(auth_router)
+api_router.include_router(logs_router)
 api_router.include_router(funcionarios_router)
 api_router.include_router(frequencia_router)
 api_router.include_router(relatorios_router)
