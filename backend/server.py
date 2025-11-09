@@ -60,9 +60,62 @@ api_router = APIRouter(prefix="/api")
 async def health_check():
     """Verifica o status da API"""
     return {
-        "message": "SANEURB API - Sistema de Gestão de Obras",
+        "message": "Sync Ops Flow - Sistema de Gestão Interna",
         "status": "online",
-        "version": "1.0.0"
+        "version": "2.0.0"
+    }
+
+
+@api_router.get("/status", tags=["Health"])
+async def system_status(db: AsyncIOMotorDatabase = Depends(get_database)):
+    """Retorna status geral do sistema"""
+    try:
+        # Testa conexão com MongoDB
+        await db.command("ping")
+        db_status = "connected"
+        
+        # Conta registros nas coleções principais
+        collections_count = {
+            "usuarios": await db.usuarios.count_documents({}),
+            "frequencia": await db.frequencia.count_documents({}),
+            "alimentacao": await db.alimentacao.count_documents({}),
+            "materiais": await db.materiais.count_documents({}),
+            "logs": await db.logs.count_documents({})
+        }
+        
+        return {
+            "status": "online",
+            "database": db_status,
+            "collections": collections_count,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        return {
+            "status": "degraded",
+            "database": "error",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+
+@api_router.get("/version", tags=["Health"])
+async def get_version():
+    """Retorna versão e data do backend"""
+    return {
+        "version": "2.0.0",
+        "release_date": "2025-11-09",
+        "name": "Sync Ops Flow",
+        "features": [
+            "Autenticação JWT (30 dias)",
+            "Sistema de perfis (admin/operacional)",
+            "Logs de auditoria",
+            "Importação/Exportação Excel/CSV",
+            "Gestão de frequência, alimentação e materiais"
+        ],
+        "auth": {
+            "type": "JWT Bearer",
+            "token_expires_in": "30 days"
+        }
     }
 
 # --- Inclusão dos routers ---
