@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Table,
   TableBody,
@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Plus, Loader2, Download } from "lucide-react";
+import { Clock, Plus, Loader2, Download, Upload } from "lucide-react";
 import { useFrequencia } from "@/hooks/use-frequencia";
 import { AddFrequenciaDialog } from "./AddFrequenciaDialog";
 import { excelApi } from "@/services/excel-api";
@@ -18,7 +18,9 @@ import { toast } from "sonner";
 export const FrequenciaTable = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const { data: registros = [], isLoading, error } = useFrequencia();
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { data: registros = [], isLoading, error, refetch } = useFrequencia();
 
   const handleExportExcel = async () => {
     setIsExporting(true);
@@ -29,6 +31,32 @@ export const FrequenciaTable = () => {
       toast.error(error.message || 'Erro ao exportar planilha');
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      const result = await excelApi.importFrequencia(file);
+      toast.success(`${result.criados} registros importados com sucesso!`);
+      if (result.erros > 0) {
+        toast.warning(`${result.erros} registros com erro`);
+      }
+      refetch();
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao importar planilha');
+    } finally {
+      setIsImporting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -58,6 +86,26 @@ export const FrequenciaTable = () => {
           </p>
         </div>
         <div className="flex gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={handleImportClick}
+            disabled={isImporting}
+          >
+            {isImporting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Upload className="w-4 h-4" />
+            )}
+            Importar Excel
+          </Button>
           <Button 
             variant="outline" 
             className="gap-2"

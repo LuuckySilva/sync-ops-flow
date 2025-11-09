@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { mockAlimentacao } from "@/lib/mock-data";
 import {
   Table,
@@ -10,12 +10,54 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { UtensilsCrossed, FileUp, Download } from "lucide-react";
+import { UtensilsCrossed, Upload, Download, Loader2 } from "lucide-react";
+import { excelApi } from "@/services/excel-api";
+import { toast } from "sonner";
 
 export const AlimentacaoTable = () => {
   const [registros] = useState(mockAlimentacao);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const totalGeral = registros.reduce((sum, reg) => sum + reg.total_dia, 0);
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      await excelApi.exportAlimentacao();
+      toast.success('Planilha exportada com sucesso!');
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao exportar planilha');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      const result = await excelApi.importAlimentacao(file);
+      toast.success(`${result.criados} registros importados com sucesso!`);
+      if (result.erros > 0) {
+        toast.warning(`${result.erros} registros com erro`);
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao importar planilha');
+    } finally {
+      setIsImporting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -27,13 +69,37 @@ export const AlimentacaoTable = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2">
-            <FileUp className="w-4 h-4" />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={handleImportClick}
+            disabled={isImporting}
+          >
+            {isImporting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Upload className="w-4 h-4" />
+            )}
             Importar Planilha
           </Button>
-          <Button className="gap-2">
-            <Download className="w-4 h-4" />
-            Exportar Relatório
+          <Button 
+            className="gap-2"
+            onClick={handleExport}
+            disabled={isExporting}
+          >
+            {isExporting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+            Exportar Excel
           </Button>
         </div>
       </div>

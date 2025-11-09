@@ -38,7 +38,7 @@ async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise
       return null as T;
     }
 
-    return response.json();
+    return response.json() as Promise<T>;
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
@@ -55,14 +55,14 @@ export const api = {
       if (params?.ativo !== undefined) queryParams.append('ativo', String(params.ativo));
       if (params?.setor) queryParams.append('setor', params.setor);
       const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
-      return fetchApi(`/funcionarios${query}`, { method: 'GET' });
+      return fetchApi<any[]>(`/funcionarios${query}`, { method: 'GET' });
     },
     
     getById: (id: string) => 
-      fetchApi(`/funcionarios/${id}`, { method: 'GET' }),
+      fetchApi<any>(`/funcionarios/${id}`, { method: 'GET' }),
     
     getByCpf: (cpf: string) => 
-      fetchApi(`/funcionarios/cpf/${cpf}`, { method: 'GET' }),
+      fetchApi<any>(`/funcionarios/cpf/${cpf}`, { method: 'GET' }),
     
     create: (data: any) => 
       fetchApi('/funcionarios', {
@@ -88,14 +88,14 @@ export const api = {
       if (params?.data_fim) queryParams.append('data_fim', params.data_fim);
       if (params?.funcionario_id) queryParams.append('funcionario_id', params.funcionario_id);
       const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
-      return fetchApi(`/frequencia${query}`, { method: 'GET' });
+      return fetchApi<any[]>(`/frequencia${query}`, { method: 'GET' });
     },
     
     getById: (id: string) => 
-      fetchApi(`/frequencia/${id}`, { method: 'GET' }),
+      fetchApi<any>(`/frequencia/${id}`, { method: 'GET' }),
     
     getByFuncionarioMes: (funcionario_id: string, ano: number, mes: number) =>
-      fetchApi(`/frequencia/funcionario/${funcionario_id}/mes/${ano}/${mes}`, { method: 'GET' }),
+      fetchApi<any[]>(`/frequencia/funcionario/${funcionario_id}/mes/${ano}/${mes}`, { method: 'GET' }),
     
     create: (data: any) => 
       fetchApi('/frequencia', {
