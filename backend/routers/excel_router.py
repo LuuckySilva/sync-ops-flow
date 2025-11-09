@@ -243,7 +243,9 @@ def create_excel_from_dataframe(df: pd.DataFrame, sheet_name: str) -> BytesIO:
 @router.post("/frequencia/import")
 async def import_frequencia(
     file: UploadFile = File(...),
-    db: AsyncIOMotorDatabase = Depends(get_database)
+    request: Request,
+    db: AsyncIOMotorDatabase = Depends(get_database),
+    current_user: dict = Depends(get_current_active_user)
 ):
     """
     Importa registros de frequência de arquivo Excel/CSV
