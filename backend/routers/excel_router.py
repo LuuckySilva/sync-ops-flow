@@ -458,8 +458,8 @@ async def export_frequencia(
 
 @router.post("/alimentacao/import")
 async def import_alimentacao(
-    file: UploadFile = File(...),
     request: Request,
+    file: UploadFile = File(...),
     db: AsyncIOMotorDatabase = Depends(get_database),
     current_user: dict = Depends(get_current_active_user)
 ):
@@ -613,8 +613,8 @@ async def export_alimentacao(
 
 @router.post("/materiais/import")
 async def import_materiais(
-    file: UploadFile = File(...),
     request: Request,
+    file: UploadFile = File(...),
     db: AsyncIOMotorDatabase = Depends(get_database),
     current_user: dict = Depends(get_current_active_user)
 ):
