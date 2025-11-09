@@ -1,0 +1,4 @@
+data,descricao,local_uso,categoria,quantidade,valor_unitario,autorizado_por
+2025-01-10,Cimento 50kg,Obra Centro,Construção,100,35.0,Eng. Carlos
+2025-01-10,Areia lavada m³,Obra Centro,Construção,5,80.0,Eng. Carlos
+2025-01-11,Tijolo cerâmico,Obra Bairro Sul,Construção,5000,0.85,Eng. Ana

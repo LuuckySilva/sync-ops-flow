@@ -1,0 +1,4 @@
+funcionario_id,nome,data,tipo_refeicao,valor_unitario,quantidade,fornecedor
+FUNC001,João Silva,2025-01-10,almoço,25.5,1,Restaurante Bom Sabor
+FUNC002,Maria Santos,2025-01-10,almoço,25.5,1,Restaurante Bom Sabor
+FUNC003,Pedro Oliveira,2025-01-10,jantar,30.0,1,Churrascaria Gaúcha

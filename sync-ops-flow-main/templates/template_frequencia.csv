@@ -1,0 +1,4 @@
+funcionario_id,data,hora_entrada,hora_saida,tipo_dia,observacao
+FUNC001,2025-01-10,08:00,17:00,util,Trabalho normal
+FUNC002,2025-01-10,08:30,17:30,util,Entrada atrasada
+FUNC003,2025-01-11,08:00,12:00,sabado,Meio período
