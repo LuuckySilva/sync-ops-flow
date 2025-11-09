@@ -1,89 +1,93 @@
-from fastapi import FastAPI, APIRouter
+# server.py
+from fastapi import FastAPI, APIRouter, Request, Depends
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
-import os
-import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List
-import uuid
-from datetime import datetime, timezone
+import logging
+import os
+import sys
 
-
+# --- Configurações iniciais ---
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+# Adiciona o diretório atual ao path (para os imports funcionarem)
+sys.path.insert(0, str(ROOT_DIR))
 
-# Create the main app without a prefix
-app = FastAPI()
+# Importa os routers
+from routers import funcionarios_router, frequencia_router, relatorios_router
+from routers.excel_router import router as excel_router
 
-# Create a router with the /api prefix
+# --- Configuração do Logger ---
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
+
+# --- Criação do app FastAPI ---
+app = FastAPI(
+    title="SANEURB - Sistema de Gestão de Obras",
+    description="API para gerenciamento de funcionários, frequência, materiais, combustível e documentação",
+    version="1.0.0"
+)
+
+# --- Conexão com o MongoDB ---
+try:
+    mongo_url = os.environ["MONGO_URL"]
+    db_name = os.environ["DB_NAME"]
+
+    client = AsyncIOMotorClient(mongo_url)
+    db = client[db_name]
+    app.state.db = db
+
+    logger.info(f"✅ Conectado ao MongoDB: {db_name}")
+except Exception as e:
+    logger.error(f"❌ Erro ao conectar ao MongoDB: {e}")
+    raise RuntimeError("Falha na conexão com o banco de dados")
+
+# --- Dependência para acessar o DB nas rotas ---
+def get_database(request: Request):
+    return request.app.state.db
+
+# --- Router principal (com prefixo /api) ---
 api_router = APIRouter(prefix="/api")
 
+@api_router.get("/", tags=["Health"])
+async def health_check():
+    """Verifica o status da API"""
+    return {
+        "message": "SANEURB API - Sistema de Gestão de Obras",
+        "status": "online",
+        "version": "1.0.0"
+    }
 
-# Define Models
-class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
-    
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+# --- Inclusão dos routers ---
+api_router.include_router(funcionarios_router)
+api_router.include_router(frequencia_router)
+api_router.include_router(relatorios_router)
+api_router.include_router(excel_router)
 
-class StatusCheckCreate(BaseModel):
-    client_name: str
-
-# Add your routes to the router instead of directly to app
-@api_router.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.model_dump()
-    status_obj = StatusCheck(**status_dict)
-    
-    # Convert to dict and serialize datetime to ISO string for MongoDB
-    doc = status_obj.model_dump()
-    doc['timestamp'] = doc['timestamp'].isoformat()
-    
-    _ = await db.status_checks.insert_one(doc)
-    return status_obj
-
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    # Exclude MongoDB's _id field from the query results
-    status_checks = await db.status_checks.find({}, {"_id": 0}).to_list(1000)
-    
-    # Convert ISO string timestamps back to datetime objects
-    for check in status_checks:
-        if isinstance(check['timestamp'], str):
-            check['timestamp'] = datetime.fromisoformat(check['timestamp'])
-    
-    return status_checks
-
-# Include the router in the main app
+# --- Adiciona o router principal à aplicação ---
 app.include_router(api_router)
 
+# --- Middleware CORS ---
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=os.environ.get("CORS_ORIGINS", "*").split(","),
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# --- Eventos do ciclo de vida ---
+@app.on_event("startup")
+async def on_startup():
+    logger.info("🚀 Servidor iniciado e pronto para uso")
 
 @app.on_event("shutdown")
-async def shutdown_db_client():
+async def on_shutdown():
     client.close()
+    logger.info("🛑 Conexão com o MongoDB encerrada")
+
