@@ -2,7 +2,7 @@
 from fastapi import FastAPI, APIRouter, Request, Depends
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from pathlib import Path
 from datetime import datetime
 import logging
