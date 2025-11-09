@@ -60,8 +60,9 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # Remove senha do retorno
+    # Remove senha e converte ID
     user.pop("senha_hash", None)
+    user["id"] = str(user.pop("_id"))
     
     return user
 
