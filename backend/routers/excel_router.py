@@ -22,14 +22,21 @@ import pandas as pd
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 
+from auth.dependencies import get_current_active_user
+from dependencies import get_database
+from services.log_service import LogService
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/excel", tags=["Excel - Importação/Exportação"])
 
 
-def get_database(request: Request) -> AsyncIOMotorDatabase:
-    """Retorna instância do banco de dados MongoDB"""
-    return request.app.state.db
+def get_client_ip(request: Request) -> str:
+    """Obtém o IP do cliente"""
+    forwarded = request.headers.get("X-Forwarded-For")
+    if forwarded:
+        return forwarded.split(",")[0]
+    return request.client.host if request.client else "unknown"
 
 
 # ============================================================================
